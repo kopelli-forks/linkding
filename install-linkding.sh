@@ -17,14 +17,23 @@ if [ -z "${LD_CONTAINER_NAME}" ]; then
     LD_CONTAINER_NAME="linkding"
 fi
 if [ -z "${LD_HOST_PORT}" ]; then
-    LD_HOST_PORT=9090
+    LD_HOST_PORT=8080
 fi
 if [ -z "${LD_HOST_DATA_DIR}" ]; then
-    LD_HOST_DATA_DIR=/etc/linkding/data
+    LD_HOST_DATA_DIR="${XDG_DATA_HOME}/linkding/data"
 fi
+if [ -z "${LD_DOCKER_IMAGE}" ]; then
+  LD_DOCKER_IMAGE="sissbrueker/linkding"
+fi
+if [ -z "${LD_DOCKER_IMAGE_VERSION}" ]; then
+  LD_DOCKER_IMAGE_VERSION="latest"
+fi
+
+DOCKER_IMAGE_TAG="${LD_DOCKER_IMAGE}:${LD_DOCKER_IMAGE_VERSION}"
 
 echo "Create or update linkding container"
 echo "Container name: ${LD_CONTAINER_NAME}"
+echo "Docker image: ${DOCKER_IMAGE_TAG}"
 echo "Host port: ${LD_HOST_PORT}"
 echo "Host data dir: ${LD_HOST_DATA_DIR}"
 
@@ -33,11 +42,11 @@ docker stop ${LD_CONTAINER_NAME} || true
 echo "Remove existing container..."
 docker rm ${LD_CONTAINER_NAME} || true
 echo "Update image..."
-docker pull sissbruecker/linkding:latest
+docker pull "${DOCKER_IMAGE_TAG}"
 echo "Start container..."
 docker run -d \
   -p ${LD_HOST_PORT}:9090 \
   --name ${LD_CONTAINER_NAME} \
-  -v ${LD_HOST_DATA_DIR}:/etc/linkding/data \
-  sissbruecker/linkding:latest
+  -v "${LD_HOST_DATA_DIR}":/etc/linkding/data \
+  "${DOCKER_IMAGE_TAG}"
 echo "Done!"
